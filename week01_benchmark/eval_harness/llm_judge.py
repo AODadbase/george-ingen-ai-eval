@@ -57,6 +57,11 @@ logger = logging.getLogger(__name__)
 REPO_ROOT = Path(__file__).resolve().parents[2]
 DATA_DIR = REPO_ROOT / "data"
 
+# Judge-level retry config (separate from the provider clients — this is
+# the judge model hitting its own TPM limit, not a provider failure).
+JUDGE_MAX_RETRIES: int = 5
+JUDGE_BACKOFF_BASE_S: float = 8.0  # 8, 16, 32, 64, 128s — TPM resets per minute
+
 # ---------------------------------------------------------------------------
 # Judge configuration
 # ---------------------------------------------------------------------------
@@ -212,36 +217,51 @@ class LLMJudge:
         task_accuracy = contextual_grounding = None
         failure_mode = reasoning = None
 
-        try:
-            async with self._semaphore:
-                resp = await asyncio.wait_for(
-                    self._client.chat.completions.create(
-                        model=JUDGE_MODEL,
-                        temperature=JUDGE_TEMPERATURE,
-                        seed=seed,
-                        messages=[
-                            {"role": "system", "content": _SEED_SYSTEM_PROMPTS[seed]},
-                            {"role": "user", "content": eval_prompt},
-                        ],
-                    ),
-                    timeout=JUDGE_TIMEOUT_S,
-                )
-            raw = resp.choices[0].message.content or ""
-            parsed = _parse_judge_response(raw)
-            task_accuracy = parsed.get("task_accuracy")
-            contextual_grounding = parsed.get("contextual_grounding")
-            failure_mode = parsed.get("failure_mode")
-            reasoning = parsed.get("reasoning")
+        for attempt in range(1, JUDGE_MAX_RETRIES + 1):
+            try:
+                async with self._semaphore:
+                    resp = await asyncio.wait_for(
+                        self._client.chat.completions.create(
+                            model=JUDGE_MODEL,
+                            temperature=JUDGE_TEMPERATURE,
+                            seed=seed,
+                            messages=[
+                                {"role": "system", "content": _SEED_SYSTEM_PROMPTS[seed]},
+                                {"role": "user", "content": eval_prompt},
+                            ],
+                        ),
+                        timeout=JUDGE_TIMEOUT_S,
+                    )
+                raw = resp.choices[0].message.content or ""
+                parsed = _parse_judge_response(raw)
+                task_accuracy = parsed.get("task_accuracy")
+                contextual_grounding = parsed.get("contextual_grounding")
+                failure_mode = parsed.get("failure_mode")
+                reasoning = parsed.get("reasoning")
+                error = None
+                break  # success — exit retry loop
 
-        except openai.RateLimitError as exc:
-            error = f"RateLimitError: {exc}"
-            logger.warning("[judge] Rate limit on %s/%s seed=%d", scenario_id, provider, seed)
-        except asyncio.TimeoutError:
-            error = f"Timeout after {JUDGE_TIMEOUT_S}s"
-            logger.warning("[judge] Timeout on %s/%s seed=%d", scenario_id, provider, seed)
-        except Exception as exc:  # noqa: BLE001
-            error = f"{type(exc).__name__}: {exc}"
-            logger.error("[judge] Error on %s/%s seed=%d: %s", scenario_id, provider, seed, exc)
+            except openai.RateLimitError as exc:
+                wait = JUDGE_BACKOFF_BASE_S * (2 ** (attempt - 1))
+                logger.warning(
+                    "[judge] Judge TPM rate limit on %s/%s seed=%d "
+                    "(attempt %d/%d) — backing off %.0fs",
+                    scenario_id, provider, seed, attempt, JUDGE_MAX_RETRIES, wait,
+                )
+                if attempt < JUDGE_MAX_RETRIES:
+                    await asyncio.sleep(wait)
+                else:
+                    error = f"RateLimitError after {JUDGE_MAX_RETRIES} attempts: {exc}"
+
+            except asyncio.TimeoutError:
+                error = f"Timeout after {JUDGE_TIMEOUT_S}s"
+                logger.warning("[judge] Timeout on %s/%s seed=%d", scenario_id, provider, seed)
+                break  # timeouts don't benefit from retry here
+
+            except Exception as exc:  # noqa: BLE001
+                error = f"{type(exc).__name__}: {exc}"
+                logger.error("[judge] Error on %s/%s seed=%d: %s", scenario_id, provider, seed, exc)
+                break  # non-transient errors don't retry
 
         latency_ms = (time.perf_counter() - t0) * 1000
         return JudgeScore(

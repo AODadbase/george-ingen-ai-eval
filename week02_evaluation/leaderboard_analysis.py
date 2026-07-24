@@ -109,11 +109,10 @@ def compute_krippendorff_alpha(
     Compute Krippendorff's Alpha for inter-seed reliability.
 
     The krippendorff library expects a reliability data matrix with shape
-    (raters, items). Here the three seeds are the "raters" and each
-    (scenario × provider) row is an "item".
-
-    Only rows where ALL three seeds have non-null scores are included
-    (missing = skipped provider calls).
+    (raters, items) where missing values are represented as np.nan.
+    The library handles missing values natively — we do NOT dropna() first,
+    because that would discard items where only some seeds scored (which is
+    exactly the pattern produced by TPM rate-limit misses).
 
     Parameters
     ----------
@@ -125,19 +124,23 @@ def compute_krippendorff_alpha(
     -------
     float — Krippendorff's alpha; NaN if insufficient data
     """
-    sub = df[seed_cols].dropna()
+    sub = df[seed_cols]
+    # Keep only items where at least 2 of 3 seeds have a score
+    has_two = sub.notna().sum(axis=1) >= 2
+    sub = sub[has_two]
     if len(sub) < 2:
-        logger.warning("Too few complete rows (%d) to compute alpha.", len(sub))
+        logger.warning("Too few scoreable rows (%d) to compute alpha.", len(sub))
         return float("nan")
 
-    # Shape: (n_raters=3, n_items=N)
-    reliability_data = sub.to_numpy().T
+    # Shape: (n_raters=3, n_items=N) — np.nan encodes missing
+    reliability_data = sub.to_numpy(dtype=float).T
 
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
         alpha = krippendorff.alpha(
             reliability_data=reliability_data,
             level_of_measurement=level_of_measurement,
+            value_domain=[1, 2, 3, 4, 5],  # explicit ordinal domain for accuracy
         )
     return float(alpha)
 
@@ -173,17 +176,23 @@ def build_leaderboard(df: pd.DataFrame) -> pd.DataFrame:
 
     Columns
     -------
-    provider                 : provider name
-    n_scenarios              : number of evaluated (scenario, provider) pairs
-    mean_latency_ms          : mean API latency
-    total_tokens             : sum of prompt + completion tokens
-    estimated_cost_usd       : tokens × per-provider price / 1000
-    severity_weighted_score  : sum(mean_accuracy × severity_class)
-    severity_weighted_score_norm : severity_weighted_score / max possible
-    mean_task_accuracy       : unweighted mean task_accuracy (seed=42)
-    mean_grounding           : unweighted mean contextual_grounding (seed=42)
-    krippendorff_alpha       : inter-seed reliability for this provider
-    top_failure_mode         : most common failure mode
+    provider                    : provider name
+    n_scenarios                 : total (scenario, provider) pairs attempted
+    n_scored                    : rows where judge_mean_accuracy is not null
+    judge_coverage_pct          : n_scored / n_scenarios × 100
+    mean_latency_ms             : mean API latency of the provider
+    total_tokens                : sum of prompt + completion tokens
+    estimated_cost_usd          : tokens × per-provider price / 1000
+    severity_weighted_score     : sum(mean_accuracy × severity_class) over scored rows
+    severity_weighted_score_norm: sw_score / max_possible_over_scored_rows
+    mean_task_accuracy          : mean of judge_mean_accuracy (scored rows only)
+    mean_grounding              : mean of judge_mean_grounding (scored rows only)
+    krippendorff_alpha          : inter-seed reliability for this provider
+    top_failure_mode            : most common failure mode
+
+    NOTE: severity_weighted_score_norm is normalised against the scored rows only,
+    so a provider with fewer scored rows is not penalised for missing data.
+    Compare providers on this column, not the raw sw_score sum.
     """
     # Compute per-row weighted score
     df = df.copy()
@@ -208,15 +217,22 @@ def build_leaderboard(df: pd.DataFrame) -> pd.DataFrame:
         cost_per_1k = COST_PER_1K_TOKENS.get(str(provider).lower(), 0.001)
         estimated_cost = total_tokens * cost_per_1k / 1000
 
-        # Severity-weighted score (sum, then normalise)
-        sw_sum = grp["weighted_score"].sum(skipna=True)
-        # Max possible = 5 (max accuracy) × 5 (max severity) × n rows
-        sw_max = 5 * 5 * n
+        # --- Scored rows (rows where judge_mean_accuracy is not null) ---
+        scored = grp[grp["judge_mean_accuracy"].notna()]
+        n_scored = len(scored)
+        coverage_pct = round(n_scored / n * 100, 1) if n > 0 else 0.0
+
+        # Severity-weighted score — normalised against scored rows only.
+        # Max possible per scored row = 5 (max accuracy) × severity_class.
+        # This prevents providers with more missing scores from ranking lower
+        # simply due to data absence rather than answer quality.
+        sw_sum = scored["weighted_score"].sum(skipna=True)
+        sw_max = (scored["severity_class"] * 5).sum() if n_scored > 0 else 0
         sw_norm = sw_sum / sw_max if sw_max > 0 else float("nan")
 
-        # Simple mean accuracy + grounding (seed=42 as primary rater)
-        mean_acc = grp["judge_s42_task_accuracy"].mean() if "judge_s42_task_accuracy" in grp.columns else float("nan")
-        mean_grd = grp["judge_s42_contextual_grounding"].mean() if "judge_s42_contextual_grounding" in grp.columns else float("nan")
+        # Mean accuracy + grounding over scored rows
+        mean_acc = scored["judge_mean_accuracy"].mean() if n_scored > 0 else float("nan")
+        mean_grd = scored["judge_mean_grounding"].mean() if n_scored > 0 else float("nan")
 
         # Per-provider Krippendorff's alpha
         alpha = compute_krippendorff_alpha(grp, ACCURACY_SEED_COLS)
@@ -229,17 +245,19 @@ def build_leaderboard(df: pd.DataFrame) -> pd.DataFrame:
             top_failure = "unknown"
 
         records.append({
-            "provider":                   provider,
-            "n_scenarios":                n,
-            "mean_latency_ms":            round(mean_latency, 1),
-            "total_tokens":               int(total_tokens),
-            "estimated_cost_usd":         round(estimated_cost, 4),
-            "severity_weighted_score":    round(sw_sum, 2),
-            "severity_weighted_score_norm": round(sw_norm, 4),
-            "mean_task_accuracy":         round(mean_acc, 3),
-            "mean_grounding":             round(mean_grd, 3),
-            "krippendorff_alpha":         round(alpha, 4),
-            "top_failure_mode":           top_failure,
+            "provider":                      provider,
+            "n_scenarios":                   n,
+            "n_scored":                      n_scored,
+            "judge_coverage_pct":            coverage_pct,
+            "mean_latency_ms":               round(mean_latency, 1),
+            "total_tokens":                  int(total_tokens),
+            "estimated_cost_usd":            round(estimated_cost, 4),
+            "severity_weighted_score":       round(sw_sum, 2),
+            "severity_weighted_score_norm":  round(sw_norm, 4),
+            "mean_task_accuracy":            round(mean_acc, 3),
+            "mean_grounding":                round(mean_grd, 3),
+            "krippendorff_alpha":            round(alpha, 4),
+            "top_failure_mode":              top_failure,
         })
 
     leaderboard = pd.DataFrame(records)
