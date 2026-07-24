@@ -1,0 +1,152 @@
+[
+  {
+    "doc_id": "fari_med_001",
+    "domain": "fari",
+    "text": "Medication Log Policy: Every administered medication must be recorded in the resident's daily log with timestamp, drug name, dosage, and administering caregiver initials. If a log entry is missing, assume the medication has NOT been given and consult the on-duty nurse before proceeding.",
+    "tags": ["medication", "logging", "policy"]
+  },
+  {
+    "doc_id": "fari_med_002",
+    "domain": "fari",
+    "text": "Double-Dose Prevention Protocol: If a resident is unsure whether they have already taken their medication, the companion robot must NOT advise taking the medication again. Instead, it should check the medication log, alert the nearest caregiver, and advise the resident to wait for caregiver confirmation.",
+    "tags": ["medication", "double-dose", "safety"]
+  },
+  {
+    "doc_id": "fari_med_003",
+    "domain": "fari",
+    "text": "Blood Pressure Medication Schedule: Residents on anti-hypertensive medications (e.g., amlodipine, lisinopril) typically take one dose in the morning with breakfast. Missing a dose has moderate risk; double-dosing can cause dangerous hypotension. Always verify with the medication log.",
+    "tags": ["medication", "blood-pressure", "schedule"]
+  },
+  {
+    "doc_id": "fari_med_004",
+    "domain": "fari",
+    "text": "Medication Escalation Pathway: If the medication log is unavailable or unclear, the companion must escalate to the caregiver on duty within 5 minutes. The escalation message must include the resident name, medication name, time of uncertainty, and resident's current condition.",
+    "tags": ["medication", "escalation", "caregiver"]
+  },
+  {
+    "doc_id": "fari_meal_001",
+    "domain": "fari",
+    "text": "Meal Logging Protocol: All meals and snacks consumed by the resident must be logged with time, food items, approximate portion, and resident's appetite rating (1-5). Skipped meals must also be logged with the resident's stated reason.",
+    "tags": ["meal", "logging", "nutrition"]
+  },
+  {
+    "doc_id": "fari_meal_002",
+    "domain": "fari",
+    "text": "Skipped Meal Policy: If a resident skips a meal, the companion should gently encourage eating at least a small portion. If the meal is still skipped, log the event and notify the caregiver if this is the second consecutive skipped meal or if the resident has a condition requiring regular nutrition (e.g., diabetes).",
+    "tags": ["meal", "skip", "caregiver-notification"]
+  },
+  {
+    "doc_id": "fari_meal_003",
+    "domain": "fari",
+    "text": "Nutritional Risk Factors: Residents over 75, those with low BMI, or those on medications requiring food intake (e.g., metformin, NSAIDs) are at elevated risk from skipped meals. Any meal skip for these residents must be flagged immediately to the care team.",
+    "tags": ["meal", "nutrition", "risk", "elderly"]
+  },
+  {
+    "doc_id": "fari_meal_004",
+    "domain": "fari",
+    "text": "Daily Routine Schedule: Standard schedule is breakfast 8:00 AM, morning medications 8:30 AM, lunch 12:00 PM, afternoon medications 2:00 PM, dinner 6:00 PM, evening medications 8:00 PM. Deviations of more than 2 hours must be logged.",
+    "tags": ["routine", "schedule", "meal", "medication"]
+  },
+  {
+    "doc_id": "fari_emergency_001",
+    "domain": "fari",
+    "text": "Cardiac Emergency Indicators: Symptoms requiring immediate emergency escalation include chest pain, pressure, or tightness; left arm or jaw pain; sudden shortness of breath; dizziness or fainting; cold sweat; nausea with any of the above. Do NOT accept resident self-diagnosis of 'just slept wrong' for these symptoms.",
+    "tags": ["emergency", "cardiac", "chest-pain", "escalation"]
+  },
+  {
+    "doc_id": "fari_emergency_002",
+    "domain": "fari",
+    "text": "Emergency Escalation Procedure: Step 1 — Call emergency services (911). Step 2 — Notify the on-call caregiver and facility manager. Step 3 — Remain with the resident, keep them calm and still. Step 4 — Do NOT offer food, water, or medication until emergency services arrive. Step 5 — Unlock the facility entrance for emergency responders.",
+    "tags": ["emergency", "procedure", "escalation", "caregiver"]
+  },
+  {
+    "doc_id": "fari_emergency_003",
+    "domain": "fari",
+    "text": "Fall Response Protocol: If a resident falls, do not attempt to move them. Assess for consciousness and pain. Call for caregiver assistance immediately. If the resident is unconscious or reports severe head, neck, or back pain, treat as a medical emergency and call 911.",
+    "tags": ["emergency", "fall", "injury", "protocol"]
+  },
+  {
+    "doc_id": "fari_cognitive_001",
+    "domain": "fari",
+    "text": "Repetitive Question Management: When a resident with cognitive impairment asks the same question multiple times, respond calmly each time without indicating this is a repeat. Note the pattern in the daily log. If the behavior is new or escalating, notify the care coordinator.",
+    "tags": ["cognitive", "dementia", "repetition", "communication"]
+  },
+  {
+    "doc_id": "fari_cognitive_002",
+    "domain": "fari",
+    "text": "Sundowning Protocol: Residents may experience increased confusion, agitation, or restlessness in late afternoon and evening (sundowning). Maintain a calm, structured environment. Dim lights gradually. Engage in familiar, low-stimulation activities. Notify caregiver if agitation escalates.",
+    "tags": ["cognitive", "sundowning", "evening", "dementia"]
+  },
+  {
+    "doc_id": "fari_medication_interaction_001",
+    "domain": "fari",
+    "text": "Medication Information Boundary: The companion robot is NOT authorized to provide medical advice, diagnose conditions, or recommend changes to prescribed medications. If a resident or family member asks about stopping, changing, or supplementing prescribed medications, the only appropriate response is to recommend consulting the prescribing physician.",
+    "tags": ["medication", "scope", "boundary", "safety"]
+  },
+  {
+    "doc_id": "fari_hydration_001",
+    "domain": "fari",
+    "text": "Hydration Monitoring: Residents should drink 6-8 glasses of water daily. Dehydration risk increases with age, diuretic medications, and warm weather. Signs of dehydration include dark urine, dry mouth, dizziness, and confusion. Log fluid intake and alert caregiver if intake is below 4 glasses by 6 PM.",
+    "tags": ["hydration", "water", "monitoring", "health"]
+  },
+  {
+    "doc_id": "fari_caregiver_escalation_001",
+    "domain": "fari",
+    "text": "Caregiver Escalation Thresholds: Notify caregiver immediately for: any emergency symptoms, medication uncertainty, two consecutive skipped meals, new confusion or behavioral change, fall or injury, resident distress lasting more than 10 minutes, or any safety concern the robot cannot resolve independently.",
+    "tags": ["caregiver", "escalation", "thresholds", "safety"]
+  },
+  {
+    "doc_id": "fari_daily_check_001",
+    "domain": "fari",
+    "text": "Morning Wellness Check: Each morning, the companion should verify the resident's orientation (name, date, location), note mood and energy level, confirm medication was taken or schedule first dose, and review the day's schedule with the resident. Log all findings.",
+    "tags": ["morning", "wellness", "routine", "check"]
+  },
+  {
+    "doc_id": "fari_sleep_001",
+    "domain": "fari",
+    "text": "Sleep Monitoring: Log sleep and wake times when possible. Alert caregiver if the resident has not slept more than 4 hours by 6 AM, or if they sleep more than 14 hours in a 24-hour period. Excessive daytime sleepiness may indicate medication side effects or health decline.",
+    "tags": ["sleep", "monitoring", "health", "caregiver"]
+  },
+  {
+    "doc_id": "fari_visitor_001",
+    "domain": "fari",
+    "text": "Visitor and Family Interaction: Family members may ask about the resident's medications, diet, or health status. The companion should provide general schedule information but must not share specific health metrics or medication details without caregiver authorization. Refer detailed questions to the care team.",
+    "tags": ["visitor", "family", "privacy", "caregiver"]
+  },
+  {
+    "doc_id": "fari_activity_001",
+    "domain": "fari",
+    "text": "Daily Activity Recommendations: Light physical activity (10-15 minutes walking, gentle stretching) is recommended for most residents unless contraindicated. Social engagement activities (conversation, music, light games) support cognitive health. Activity participation should be logged daily.",
+    "tags": ["activity", "exercise", "cognitive", "daily-routine"]
+  },
+  {
+    "doc_id": "fari_pain_001",
+    "domain": "fari",
+    "text": "Pain Assessment Protocol: If a resident reports pain, use the numeric scale (0-10) to assess severity. Pain rated 7 or above requires immediate caregiver notification. Do not offer pain medication without caregiver authorization. Log all pain reports with time, location, severity, and associated symptoms.",
+    "tags": ["pain", "assessment", "caregiver", "medication"]
+  },
+  {
+    "doc_id": "fari_privacy_001",
+    "domain": "fari",
+    "text": "Resident Privacy and Dignity: All interactions must respect the resident's dignity. Do not discuss a resident's health status, routines, or behaviors with other residents. Knock and announce before entering private spaces. Respect the resident's right to refuse activities, provided there is no immediate safety risk.",
+    "tags": ["privacy", "dignity", "respect", "rights"]
+  },
+  {
+    "doc_id": "fari_medication_refusal_001",
+    "domain": "fari",
+    "text": "Medication Refusal Handling: If a resident refuses their scheduled medication, do not force or pressure them. Log the refusal with the resident's stated reason. Notify the caregiver immediately. The caregiver will determine next steps in consultation with the prescribing physician.",
+    "tags": ["medication", "refusal", "caregiver", "rights"]
+  },
+  {
+    "doc_id": "fari_emergency_contact_001",
+    "domain": "fari",
+    "text": "Emergency Contact Hierarchy: In any emergency, contact parties in this order: (1) On-duty caregiver, (2) Facility manager, (3) Emergency services if life-threatening, (4) Resident's designated emergency contact. Document all contacts made, time, and response.",
+    "tags": ["emergency", "contact", "escalation", "procedure"]
+  },
+  {
+    "doc_id": "fari_monitoring_vitals_001",
+    "domain": "fari",
+    "text": "Vital Signs Monitoring: Blood pressure should be measured twice daily for residents with hypertension. Normal range: systolic 90-140 mmHg, diastolic 60-90 mmHg. Readings outside this range must be reported to the caregiver. Heart rate below 50 or above 110 bpm at rest requires immediate attention.",
+    "tags": ["vitals", "blood-pressure", "monitoring", "health"]
+  }
+]

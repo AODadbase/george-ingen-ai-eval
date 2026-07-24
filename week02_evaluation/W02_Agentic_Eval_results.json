@@ -1,0 +1,338 @@
+{
+  "metadata": {
+    "evaluation": "W02_Agentic_Eval",
+    "total_results": 6,
+    "providers": [
+      "anthropic",
+      "deepseek"
+    ],
+    "agent_models": {
+      "anthropic": "claude-sonnet-4-6",
+      "deepseek": "deepseek-chat"
+    },
+    "temperature": 0.0,
+    "seed": 42,
+    "judge_model": "gpt-4o",
+    "judge_seeds": [
+      42,
+      100,
+      2026
+    ],
+    "dry_run": true,
+    "timestamp_utc": "20260724T062618Z"
+  },
+  "results": [
+    {
+      "scenario_id": "TrackB_Rover_01",
+      "platform": "Aido Rover",
+      "provider": "anthropic",
+      "model": "dry_run",
+      "task_completion_rate": 1,
+      "step_efficiency": 1.25,
+      "error_recovery_rate": 0.5,
+      "per_step_verdicts": [
+        {
+          "step": 0,
+          "verdict": true,
+          "seed_verdicts": {
+            "42": true,
+            "100": true,
+            "2026": true
+          }
+        },
+        {
+          "step": 1,
+          "verdict": true,
+          "seed_verdicts": {
+            "42": true,
+            "100": true,
+            "2026": true
+          }
+        },
+        {
+          "step": 2,
+          "verdict": true,
+          "seed_verdicts": {
+            "42": true,
+            "100": true,
+            "2026": true
+          }
+        }
+      ],
+      "early_exit_triggered": false,
+      "transcript": [],
+      "actual_actions_taken": 4,
+      "temperature": 0.0,
+      "seed": 42,
+      "timestamp_utc": "20260724T062618Z",
+      "error": null,
+      "dry_run": true
+    },
+    {
+      "scenario_id": "TrackB_Rover_02",
+      "platform": "Aido Rover",
+      "provider": "anthropic",
+      "model": "dry_run",
+      "task_completion_rate": 1,
+      "step_efficiency": 1.25,
+      "error_recovery_rate": 0.5,
+      "per_step_verdicts": [
+        {
+          "step": 0,
+          "verdict": true,
+          "seed_verdicts": {
+            "42": true,
+            "100": true,
+            "2026": true
+          }
+        },
+        {
+          "step": 1,
+          "verdict": true,
+          "seed_verdicts": {
+            "42": true,
+            "100": true,
+            "2026": true
+          }
+        },
+        {
+          "step": 2,
+          "verdict": true,
+          "seed_verdicts": {
+            "42": true,
+            "100": true,
+            "2026": true
+          }
+        },
+        {
+          "step": 3,
+          "verdict": true,
+          "seed_verdicts": {
+            "42": true,
+            "100": true,
+            "2026": true
+          }
+        }
+      ],
+      "early_exit_triggered": false,
+      "transcript": [],
+      "actual_actions_taken": 5,
+      "temperature": 0.0,
+      "seed": 42,
+      "timestamp_utc": "20260724T062618Z",
+      "error": null,
+      "dry_run": true
+    },
+    {
+      "scenario_id": "TrackB_Rover_03",
+      "platform": "Aido Rover",
+      "provider": "anthropic",
+      "model": "dry_run",
+      "task_completion_rate": 1,
+      "step_efficiency": 1.25,
+      "error_recovery_rate": 0.5,
+      "per_step_verdicts": [
+        {
+          "step": 0,
+          "verdict": true,
+          "seed_verdicts": {
+            "42": true,
+            "100": true,
+            "2026": true
+          }
+        },
+        {
+          "step": 1,
+          "verdict": true,
+          "seed_verdicts": {
+            "42": true,
+            "100": true,
+            "2026": true
+          }
+        },
+        {
+          "step": 2,
+          "verdict": true,
+          "seed_verdicts": {
+            "42": true,
+            "100": true,
+            "2026": true
+          }
+        },
+        {
+          "step": 3,
+          "verdict": true,
+          "seed_verdicts": {
+            "42": true,
+            "100": true,
+            "2026": true
+          }
+        }
+      ],
+      "early_exit_triggered": false,
+      "transcript": [],
+      "actual_actions_taken": 5,
+      "temperature": 0.0,
+      "seed": 42,
+      "timestamp_utc": "20260724T062618Z",
+      "error": null,
+      "dry_run": true
+    },
+    {
+      "scenario_id": "TrackB_Rover_01",
+      "platform": "Aido Rover",
+      "provider": "deepseek",
+      "model": "dry_run",
+      "task_completion_rate": 1,
+      "step_efficiency": 1.25,
+      "error_recovery_rate": 0.5,
+      "per_step_verdicts": [
+        {
+          "step": 0,
+          "verdict": true,
+          "seed_verdicts": {
+            "42": true,
+            "100": true,
+            "2026": true
+          }
+        },
+        {
+          "step": 1,
+          "verdict": true,
+          "seed_verdicts": {
+            "42": true,
+            "100": true,
+            "2026": true
+          }
+        },
+        {
+          "step": 2,
+          "verdict": true,
+          "seed_verdicts": {
+            "42": true,
+            "100": true,
+            "2026": true
+          }
+        }
+      ],
+      "early_exit_triggered": false,
+      "transcript": [],
+      "actual_actions_taken": 4,
+      "temperature": 0.0,
+      "seed": 42,
+      "timestamp_utc": "20260724T062618Z",
+      "error": null,
+      "dry_run": true
+    },
+    {
+      "scenario_id": "TrackB_Rover_02",
+      "platform": "Aido Rover",
+      "provider": "deepseek",
+      "model": "dry_run",
+      "task_completion_rate": 1,
+      "step_efficiency": 1.25,
+      "error_recovery_rate": 0.5,
+      "per_step_verdicts": [
+        {
+          "step": 0,
+          "verdict": true,
+          "seed_verdicts": {
+            "42": true,
+            "100": true,
+            "2026": true
+          }
+        },
+        {
+          "step": 1,
+          "verdict": true,
+          "seed_verdicts": {
+            "42": true,
+            "100": true,
+            "2026": true
+          }
+        },
+        {
+          "step": 2,
+          "verdict": true,
+          "seed_verdicts": {
+            "42": true,
+            "100": true,
+            "2026": true
+          }
+        },
+        {
+          "step": 3,
+          "verdict": true,
+          "seed_verdicts": {
+            "42": true,
+            "100": true,
+            "2026": true
+          }
+        }
+      ],
+      "early_exit_triggered": false,
+      "transcript": [],
+      "actual_actions_taken": 5,
+      "temperature": 0.0,
+      "seed": 42,
+      "timestamp_utc": "20260724T062618Z",
+      "error": null,
+      "dry_run": true
+    },
+    {
+      "scenario_id": "TrackB_Rover_03",
+      "platform": "Aido Rover",
+      "provider": "deepseek",
+      "model": "dry_run",
+      "task_completion_rate": 1,
+      "step_efficiency": 1.25,
+      "error_recovery_rate": 0.5,
+      "per_step_verdicts": [
+        {
+          "step": 0,
+          "verdict": true,
+          "seed_verdicts": {
+            "42": true,
+            "100": true,
+            "2026": true
+          }
+        },
+        {
+          "step": 1,
+          "verdict": true,
+          "seed_verdicts": {
+            "42": true,
+            "100": true,
+            "2026": true
+          }
+        },
+        {
+          "step": 2,
+          "verdict": true,
+          "seed_verdicts": {
+            "42": true,
+            "100": true,
+            "2026": true
+          }
+        },
+        {
+          "step": 3,
+          "verdict": true,
+          "seed_verdicts": {
+            "42": true,
+            "100": true,
+            "2026": true
+          }
+        }
+      ],
+      "early_exit_triggered": false,
+      "transcript": [],
+      "actual_actions_taken": 5,
+      "temperature": 0.0,
+      "seed": 42,
+      "timestamp_utc": "20260724T062618Z",
+      "error": null,
+      "dry_run": true
+    }
+  ]
+}

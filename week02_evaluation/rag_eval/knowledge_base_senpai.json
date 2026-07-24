@@ -1,0 +1,152 @@
+[
+  {
+    "doc_id": "senpai_math_001",
+    "domain": "senpai",
+    "text": "Algebra Curriculum Objectives (Grade 8): Students will understand linear equations, inequalities, and systems of equations. They will graph linear functions, interpret slope and intercept, and apply algebraic reasoning to word problems. Mastery is assessed via problem-solving on multi-step word problems requiring equation setup and solution.",
+    "tags": ["math", "algebra", "curriculum", "grade-8"]
+  },
+  {
+    "doc_id": "senpai_math_002",
+    "domain": "senpai",
+    "text": "Adaptive Tutoring Rule — Algebra Word Problems: When a student cannot translate a word problem into an equation, first decompose the problem: (1) identify the unknown, (2) identify the relationship stated in the problem, (3) write the equation. If the student fails step 1, provide a worked example before asking them to try again.",
+    "tags": ["math", "algebra", "tutoring", "word-problems", "adaptive"]
+  },
+  {
+    "doc_id": "senpai_math_003",
+    "domain": "senpai",
+    "text": "Fractions — Common Misconceptions: Students frequently confuse numerator and denominator. A reliable clarification: the denominator tells you how many equal parts the whole is divided into; the numerator tells you how many parts you have. Use visual aids (pie charts, number lines) when verbal explanation fails.",
+    "tags": ["math", "fractions", "misconceptions", "tutoring"]
+  },
+  {
+    "doc_id": "senpai_math_004",
+    "domain": "senpai",
+    "text": "Fractions — Teaching Sequence: Introduce fractions in this order: (1) concept of equal parts, (2) unit fractions (1/n), (3) non-unit fractions (m/n), (4) equivalent fractions, (5) comparing fractions, (6) addition and subtraction with common denominators, (7) multiplication and division. Do not advance until the student demonstrates mastery at each level.",
+    "tags": ["math", "fractions", "sequence", "curriculum"]
+  },
+  {
+    "doc_id": "senpai_math_005",
+    "domain": "senpai",
+    "text": "Difficulty Calibration Rule: After each practice problem, assess student performance. If the student answers correctly on the first attempt, increase difficulty by one level. If the student requires a hint, stay at the same level. If the student answers incorrectly after a hint, decrease difficulty and provide a scaffolded example before re-attempting.",
+    "tags": ["adaptive", "difficulty", "calibration", "tutoring"]
+  },
+  {
+    "doc_id": "senpai_science_001",
+    "domain": "senpai",
+    "text": "Chemistry — Balancing Chemical Equations: To balance an equation, count atoms of each element on both sides. Adjust coefficients (not subscripts) to equalize. A systematic approach: balance metals first, then non-metals, then hydrogen and oxygen last. Check by counting all atoms after adjustment.",
+    "tags": ["science", "chemistry", "balancing-equations", "curriculum"]
+  },
+  {
+    "doc_id": "senpai_science_002",
+    "domain": "senpai",
+    "text": "Chemistry — Student Difficulty Patterns: Students often struggle with (1) distinguishing coefficients from subscripts, (2) balancing polyatomic ions as a unit, and (3) equations involving more than 3 reactants. When a student freezes on a long equation, decompose it: balance one element at a time and check after each step.",
+    "tags": ["science", "chemistry", "difficulty", "tutoring", "adaptive"]
+  },
+  {
+    "doc_id": "senpai_science_003",
+    "domain": "senpai",
+    "text": "Science Project Rubric (General): A valid science project must include: (1) a testable hypothesis, (2) a clear independent and dependent variable, (3) a controlled experiment or structured observation, (4) data collection with at least 3 trials, (5) analysis and conclusion. Projects missing any of these elements require revision before submission.",
+    "tags": ["science", "project", "rubric", "curriculum"]
+  },
+  {
+    "doc_id": "senpai_learning_001",
+    "domain": "senpai",
+    "text": "Study Plan Prioritization Framework: When a student has multiple subjects to study, prioritize by: (1) upcoming deadline (nearest deadline first), (2) difficulty relative to current performance (weakest subject second), (3) prerequisite dependencies (foundational topics before advanced ones). A study plan should be reviewed and adapted weekly.",
+    "tags": ["study-plan", "prioritization", "adaptive", "multi-subject"]
+  },
+  {
+    "doc_id": "senpai_learning_002",
+    "domain": "senpai",
+    "text": "Spaced Repetition Principle: Material is retained better when reviewed at increasing intervals. After initial learning, review after 1 day, then 3 days, then 7 days, then 14 days. The Senpai robot should schedule review prompts for recently learned concepts according to this schedule.",
+    "tags": ["study", "memory", "spaced-repetition", "retention"]
+  },
+  {
+    "doc_id": "senpai_learning_003",
+    "domain": "senpai",
+    "text": "Feedback Loop Design: An adaptive tutoring routine must include: (1) a short pre-assessment to identify gaps, (2) targeted instruction on identified gaps, (3) a practice set with immediate feedback, (4) a post-assessment to verify mastery, (5) a next-session recommendation based on results. Skipping any step undermines the adaptive purpose.",
+    "tags": ["tutoring", "feedback-loop", "adaptive", "assessment"]
+  },
+  {
+    "doc_id": "senpai_curriculum_001",
+    "domain": "senpai",
+    "text": "Advanced Math vs Language Arts — Guidance Framework: When advising on course selection, consider: the student's long-term goals (STEM vs humanities), their current grade trajectory in each subject, teacher recommendations, and prerequisite requirements for future courses. Do not recommend advanced courses to students who are currently struggling in the prerequisite.",
+    "tags": ["curriculum", "course-selection", "advising", "goals"]
+  },
+  {
+    "doc_id": "senpai_curriculum_002",
+    "domain": "senpai",
+    "text": "Science Curriculum — Grade 9 Biology Objectives: Students will understand cell structure and function, genetics and heredity, evolution, and ecosystems. Laboratory skills include microscope use, experimental design, and data analysis. Assessments include both lab reports and conceptual essay questions.",
+    "tags": ["science", "biology", "curriculum", "grade-9"]
+  },
+  {
+    "doc_id": "senpai_curriculum_003",
+    "domain": "senpai",
+    "text": "Language Arts — Skill Progression: Reading comprehension, grammar, vocabulary, and writing are assessed separately. A student excelling in vocabulary but weak in written argumentation needs targeted writing workshops, not general language arts remediation. Diagnostic assessment should precede any intervention.",
+    "tags": ["language-arts", "curriculum", "diagnostic", "writing"]
+  },
+  {
+    "doc_id": "senpai_quiz_001",
+    "domain": "senpai",
+    "text": "Quiz Error Analysis Protocol: When a student repeatedly misses the same type of question, the tutor should: (1) identify the error pattern (conceptual, procedural, or careless), (2) address the root cause directly, (3) provide 3 targeted practice problems of that type, (4) re-assess within 48 hours. Repetition without diagnosis does not improve performance.",
+    "tags": ["quiz", "error-analysis", "adaptive", "tutoring"]
+  },
+  {
+    "doc_id": "senpai_quiz_002",
+    "domain": "senpai",
+    "text": "Adaptive Study Routine Design: An effective study routine for quiz preparation includes: (1) review of missed topics (40% of study time), (2) practice problems at the target difficulty level (40% of study time), (3) timed mini-quiz simulation (20% of study time). The routine should be adjusted each session based on performance data.",
+    "tags": ["study-routine", "adaptive", "quiz", "preparation"]
+  },
+  {
+    "doc_id": "senpai_motivation_001",
+    "domain": "senpai",
+    "text": "Student Motivation Principles: Effective tutoring acknowledges effort, not just results. When a student expresses frustration, validate the feeling, identify a small achievable step, and celebrate that success. Avoid over-praising incorrect answers or under-challenging students who are ready for more difficulty.",
+    "tags": ["motivation", "engagement", "tutoring", "communication"]
+  },
+  {
+    "doc_id": "senpai_scope_001",
+    "domain": "senpai",
+    "text": "Tutor Scope Boundary: The Senpai robot is authorized to tutor academic subjects at the K-12 level, help with study planning, and provide curriculum guidance. It is NOT authorized to: assign official grades, contact teachers or parents directly, override a teacher's instructional decision, or tutor subjects outside the current curriculum scope.",
+    "tags": ["scope", "boundary", "authorization", "tutoring"]
+  },
+  {
+    "doc_id": "senpai_project_001",
+    "domain": "senpai",
+    "text": "Project Scope Narrowing Guide: When a student's project idea is too broad, guide them through these narrowing questions: (1) What specific aspect of this topic interests you most? (2) What is a question you could actually test or investigate? (3) What data could you collect in the time available? (4) What resources do you have access to? The resulting project should answer one focused question.",
+    "tags": ["project", "scope", "planning", "science"]
+  },
+  {
+    "doc_id": "senpai_project_002",
+    "domain": "senpai",
+    "text": "Resource Constraints in Project Planning: A valid project must be completable with the resources available to the student. Common constraints include: time (2-4 weeks), materials (household or school lab items only), data sources (publicly available or self-collected). Projects requiring expensive equipment or inaccessible data should be revised.",
+    "tags": ["project", "resources", "constraints", "planning"]
+  },
+  {
+    "doc_id": "senpai_math_algebra_001",
+    "domain": "senpai",
+    "text": "Equation Setup from Word Problems — Worked Example: 'A train travels 60 mph. How far does it travel in 2.5 hours?' Step 1 (identify unknown): distance. Step 2 (identify relationship): distance = speed × time. Step 3 (write equation): d = 60 × 2.5. Step 4 (solve): d = 150 miles. This template applies to any rate-time-distance problem.",
+    "tags": ["math", "algebra", "word-problems", "worked-example"]
+  },
+  {
+    "doc_id": "senpai_chemistry_002",
+    "domain": "senpai",
+    "text": "Chemical Equation Transfer Problem: After learning to balance a simple equation (e.g., H2 + O2 → H2O), a student should be able to balance a structurally similar equation involving different elements. If they cannot transfer the skill, this indicates a procedural gap, not a conceptual one — they understand the concept but need more procedural practice.",
+    "tags": ["science", "chemistry", "transfer", "assessment"]
+  },
+  {
+    "doc_id": "senpai_assessment_001",
+    "domain": "senpai",
+    "text": "Mastery Threshold: A student is considered to have mastered a concept when they answer 4 out of 5 practice problems correctly without hints, across two consecutive sessions. Below this threshold, the tutor should not advance to the next topic.",
+    "tags": ["assessment", "mastery", "threshold", "adaptive"]
+  },
+  {
+    "doc_id": "senpai_communication_001",
+    "domain": "senpai",
+    "text": "Age-Appropriate Communication: Use vocabulary appropriate to the student's grade level. For elementary students (K-5), use concrete examples and visual metaphors. For middle schoolers (6-8), introduce formal terminology alongside plain language. For high schoolers (9-12), use subject-specific terminology and expect abstract reasoning.",
+    "tags": ["communication", "age-appropriate", "tutoring", "language"]
+  },
+  {
+    "doc_id": "senpai_learning_styles_001",
+    "domain": "senpai",
+    "text": "Explanation Style Adaptation: If a student says they don't understand after a verbal explanation, switch to a different modality: written step-by-step, visual diagram description, or concrete numerical example. Repeating the same explanation in the same way does not produce different results.",
+    "tags": ["learning-styles", "adaptation", "tutoring", "explanation"]
+  }
+]
