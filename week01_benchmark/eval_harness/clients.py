@@ -133,6 +133,25 @@ class BaseAsyncLLMClient(ABC):
                 )
                 await asyncio.sleep(wait)
 
+            except Exception as exc:  # noqa: BLE001
+                # Non-retryable error (e.g. 404 invalid model, auth failure).
+                # Return immediately — no retry, no crash.
+                logger.error(
+                    "[%s] Non-retryable error on attempt %d: %s",
+                    self.provider_name, attempt, exc,
+                )
+                return LLMResponse(
+                    provider=self.provider_name,
+                    model=self.model,
+                    content="",
+                    prompt_tokens=0,
+                    completion_tokens=0,
+                    latency_ms=0.0,
+                    temperature=self.temperature,
+                    seed=self.seed,
+                    error=f"{type(exc).__name__}: {exc}",
+                )
+
         return LLMResponse(
             provider=self.provider_name,
             model=self.model,
@@ -213,7 +232,7 @@ class AnthropicClient(BaseAsyncLLMClient):
     def __init__(
         self,
         api_key: str,
-        model: str = "claude-3-5-sonnet-20241022",
+        model: str = "claude-3-5-haiku-20241022",
         temperature: float = 0.0,
         seed: int = 42,
         timeout_s: float = 60.0,
@@ -352,19 +371,19 @@ class DeepSeekClient(BaseAsyncLLMClient):
 
 # New Inference Providers Router — OpenAI-compatible endpoint.
 # The legacy https://api-inference.huggingface.co/models/{model} endpoint
-# is deprecated; this router accepts standard chat/completions payloads and
-# returns OpenAI-shaped responses including token usage.
-_HF_ROUTER_BASE = "https://router.huggingface.co/hf-inference/v1"
+# Groq Cloud — OpenAI-compatible inference endpoint.
+# The HF_TOKEN env variable is reused as the Groq API key for zero-.env changes.
+_GROQ_API_BASE = "https://api.groq.com/openai/v1"
 
 
 class HuggingFaceClient(BaseAsyncLLMClient):
     """
-    Llama-3-8B-Instruct via the HuggingFace Inference Router API.
+    Llama-3-8B via Groq Cloud (OpenAI-compatible endpoint).
 
-    The Router API is fully OpenAI-compatible (chat/completions endpoint),
-    so the payload and response parsing mirror DeepSeekClient exactly.
-    Manual Llama-3 chat-template assembly is no longer needed.
-    Token usage is now returned in the standard `usage` field.
+    Groq's API is a drop-in replacement for HuggingFace Inference Providers:
+    same chat/completions payload, same response shape, real token usage.
+    The class retains the name HuggingFaceClient and reads from HF_TOKEN
+    so no .env or dispatcher changes are required.
 
     A single shared ClientSession is reused across all concurrent requests
     to preserve the TCP connection pool.
@@ -374,7 +393,7 @@ class HuggingFaceClient(BaseAsyncLLMClient):
     def __init__(
         self,
         api_key: str,
-        model: str = "meta-llama/Meta-Llama-3-8B-Instruct",
+        model: str = "llama-3.1-8b-instant",
         temperature: float = 0.0,
         seed: int = 42,
         timeout_s: float = 90.0,
@@ -401,7 +420,7 @@ class HuggingFaceClient(BaseAsyncLLMClient):
 
     @property
     def provider_name(self) -> str:
-        return "huggingface"
+        return "groq"
 
     async def _call(self, system_prompt: str, user_prompt: str) -> LLMResponse:
         payload = {
@@ -410,24 +429,25 @@ class HuggingFaceClient(BaseAsyncLLMClient):
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_prompt},
             ],
-            # Router API requires temperature > 0
+            # Groq requires temperature > 0 when seed is set
             "temperature": max(self.temperature, 1e-4),
             "max_tokens": self.max_new_tokens,
+            "seed": self.seed,
         }
         t0 = time.perf_counter()
         session = self._get_session()
         async with session.post(
-            f"{_HF_ROUTER_BASE}/chat/completions",
+            f"{_GROQ_API_BASE}/chat/completions",
             json=payload,
             timeout=aiohttp.ClientTimeout(total=self.timeout_s),
         ) as resp:
             body = await resp.text()
             if resp.status == 429:
-                raise RateLimitError(f"HuggingFace 429: {body}")
+                raise RateLimitError(f"Groq 429: {body}")
             if resp.status >= 500:
-                raise TransientError(f"HuggingFace {resp.status}: {body}")
+                raise TransientError(f"Groq {resp.status}: {body}")
             if resp.status != 200:
-                raise RuntimeError(f"HuggingFace {resp.status}: {body}")
+                raise RuntimeError(f"Groq {resp.status}: {body}")
             data = await resp.json(content_type=None)
 
         latency_ms = (time.perf_counter() - t0) * 1000
