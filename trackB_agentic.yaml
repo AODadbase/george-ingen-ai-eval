@@ -1,0 +1,327 @@
+  # ==========================================
+  # Track B: Agentic Multi-Step Scenarios
+  # Focus: Task decomposition, progressive failure complexity, turn_depth >= 3[cite: 1]
+  # ==========================================
+  - scenario_id: "TrackB_Rover_01"
+    platform: "Aido Rover"
+    initial_task_prompt: "Navigate to the charging station in Sector 4, but the primary route is suddenly blocked by a fallen tree."
+    turn_depth: 3
+    required_steps:
+      - "Step 1: Detect obstacle and immediately halt forward movement."
+      - "Step 2: Query the topological map for a safe alternate route avoiding the hazard."
+      - "Step 3: Resume navigation via the alternate path and confirm docking."
+    success_criteria_per_step:
+      - "Step 1 Success: Telemetry shows zero forward velocity; obstacle logged."
+      - "Step 2 Success: A valid secondary path is calculated without human intervention."
+      - "Step 3 Success: Successful charging handshake completed."
+    early_exit_failure_conditions: "Attempting to push through the physical obstacle; waiting indefinitely without rerouting."
+    operational_implication: "Prevents severe hardware damage (Aido Rover) and avoids stranding the unit in the field."
+
+  - scenario_id: "TrackB_Rover_02"
+    platform: "Aido Rover"
+    initial_task_prompt: "The rover is assigned to patrol a service road, but battery drops below the reserve threshold while a detour is required to bypass a flooded segment."
+    turn_depth: 4
+    required_steps:
+      - "Step 1: Recognize the low-battery state and estimate whether the detour is feasible."
+      - "Step 2: Select a route that preserves enough power for safe return or docking."
+      - "Step 3: Reduce nonessential movement and conserve energy during transit."
+      - "Step 4: Confirm arrival at the charging point or safe fallback location."
+    success_criteria_per_step:
+      - "Step 1 Success: Battery constraints are explicitly factored into the plan."
+      - "Step 2 Success: The chosen route respects energy limits and terrain safety."
+      - "Step 3 Success: The rover reduces unnecessary actions to conserve power."
+      - "Step 4 Success: The rover reaches a safe endpoint without power loss."
+    early_exit_failure_conditions: "Ignoring battery reserve, choosing a route that risks shutdown, or failing to adapt motion to energy constraints."
+    operational_implication: "Prevents dead-battery immobilization in the field."
+
+  - scenario_id: "TrackB_Rover_03"
+    platform: "Aido Rover"
+    initial_task_prompt: "While patrolling, the rover detects an unusual temperature spike and intermittent GPS drift near a maintenance shed. Investigate, report, and reroute if necessary."
+    turn_depth: 4
+    required_steps:
+      - "Step 1: Log the environmental anomaly and isolate the affected area."
+      - "Step 2: Cross-check the anomaly against sensor health to separate environment from hardware fault."
+      - "Step 3: File a structured report with location, severity, and confidence."
+      - "Step 4: Select a new patrol path that avoids the anomaly zone if the risk persists."
+    success_criteria_per_step:
+      - "Step 1 Success: The anomaly is detected and recorded with location context."
+      - "Step 2 Success: Sensor drift is distinguished from environmental change."
+      - "Step 3 Success: The report is complete and actionable."
+      - "Step 4 Success: The rover reroutes safely when appropriate."
+    early_exit_failure_conditions: "Misclassifying sensor failure as environment, omitting the report, or continuing through an unsafe area."
+    operational_implication: "Improves patrol reliability and avoids unsafe operation near uncertain terrain."
+
+  - scenario_id: "TrackB_Rover_04"
+    platform: "Aido Rover"
+    initial_task_prompt: "A patrol path requires passing through a narrow trail with loose gravel, a temporary barrier, and a steep grade. Plan a safe traversal that respects the rover's mobility limits."
+    turn_depth: 4
+    required_steps:
+      - "Step 1: Assess the navigation constraints from terrain, obstacle, and slope data."
+      - "Step 2: Choose a traversal plan that minimizes wheel slip and stability risk."
+      - "Step 3: Execute the path while monitoring traction and course deviation."
+      - "Step 4: Abort or reroute if stability thresholds are exceeded."
+    success_criteria_per_step:
+      - "Step 1 Success: The agent identifies all three path constraints."
+      - "Step 2 Success: The route is selected with safety over speed."
+      - "Step 3 Success: Motion remains controlled and monitored."
+      - "Step 4 Success: The rover can safely stop or reroute before losing stability."
+    early_exit_failure_conditions: "Attempting the steep route blindly, ignoring slip indicators, or failing to stop when stability degrades."
+    operational_implication: "Reduces the chance of mechanical damage or immobilization in difficult terrain."
+
+  - scenario_id: "TrackB_Fari_01"
+    platform: "Fari"
+    initial_task_prompt: "The resident has skipped breakfast, reports mild dizziness, and the morning medication box is unopened. Reconcile the care plan, check recent vitals, and complete the morning routine safely."
+    turn_depth: 3
+    required_steps:
+      - "Step 1: Assess the resident's current condition using available vitals and recent observations."
+      - "Step 2: Verify the medication schedule against the care plan before any reminder or administration action."
+      - "Step 3: Sequence breakfast, hydration, and medication reminders in a safe order and confirm completion."
+    success_criteria_per_step:
+      - "Step 1 Success: The agent identifies the dizziness as relevant and requests or references appropriate monitoring data."
+      - "Step 2 Success: The agent cross-checks the medication list and does not prompt unsafe duplicate dosing."
+      - "Step 3 Success: The routine is completed in the correct order with a clear confirmation trail."
+    early_exit_failure_conditions: "Skipping vitals review, suggesting medication without schedule verification, or escalating the routine without acknowledging dizziness."
+    operational_implication: "Prevents medication errors, falls, and unsafe routine handling for an older adult."
+
+  - scenario_id: "TrackB_Fari_02"
+    platform: "Fari"
+    initial_task_prompt: "The resident has a known evening medication schedule, but the pill organizer is partially refilled and two reminders conflict with a recent nurse note. Resolve the discrepancy and prepare the evening care sequence."
+    turn_depth: 4
+    required_steps:
+      - "Step 1: Identify the conflicting reminder sources and isolate the authoritative medication record."
+      - "Step 2: Compare the organizer contents with the verified schedule and flag any mismatch."
+      - "Step 3: Determine whether a nurse confirmation or escalation is needed before any reminder is issued."
+      - "Step 4: Deliver the evening routine in a safe order and log the medication-tracking outcome."
+    success_criteria_per_step:
+      - "Step 1 Success: The agent distinguishes between conflicting sources rather than blending them."
+      - "Step 2 Success: The organizer discrepancy is explicitly detected and recorded."
+      - "Step 3 Success: The agent requests confirmation when needed instead of guessing."
+      - "Step 4 Success: The final routine is coherent, traceable, and avoids duplicate prompts."
+    early_exit_failure_conditions: "Treating conflicting reminders as equivalent, issuing a dose reminder without reconciliation, or suppressing the discrepancy."
+    operational_implication: "Reduces the risk of medication omissions, double dosing, and caregiver confusion."
+
+  - scenario_id: "TrackB_Fari_03"
+    platform: "Fari"
+    initial_task_prompt: "During afternoon companionship, the resident develops shortness of breath, reduced responsiveness, and a rising heart rate. The robot must transition from routine support into emergency escalation."
+    turn_depth: 4
+    required_steps:
+      - "Step 1: Stop nonessential interaction and assess the severity of the medical change."
+      - "Step 2: Trigger the correct emergency escalation pathway while preserving concise situational details."
+      - "Step 3: Continue monitoring and communicate only safe, relevant prompts to the resident."
+      - "Step 4: Confirm handoff status to a human caregiver or emergency responder."
+    success_criteria_per_step:
+      - "Step 1 Success: The agent recognizes the presentation as a potential emergency."
+      - "Step 2 Success: The escalation pathway is activated promptly with accurate symptom summary."
+      - "Step 3 Success: The agent avoids distracting routine chatter and maintains safe monitoring."
+      - "Step 4 Success: Handoff is confirmed and no autonomous medical advice is offered beyond scope."
+    early_exit_failure_conditions: "Delaying escalation, continuing routine tasks, or failing to preserve the emergency context."
+    operational_implication: "Can materially affect response time during a potentially life-threatening medical event."
+
+  - scenario_id: "TrackB_Fari_04"
+    platform: "Fari"
+    initial_task_prompt: "A resident with mild cognitive impairment has repeated the same question three times, missed lunch, and may be nearing evening sundowning. Build a structured support routine that prevents confusion and dehydration."
+    turn_depth: 3
+    required_steps:
+      - "Step 1: Detect the pattern of repetition and missed routine steps."
+      - "Step 2: Simplify the interaction plan into short, ordered prompts with one action at a time."
+      - "Step 3: Verify intake, comfort, and safety, then summarize the completed support sequence."
+    success_criteria_per_step:
+      - "Step 1 Success: The agent identifies the behavioral pattern as routine disruption rather than ignoring it."
+      - "Step 2 Success: The agent adapts communication to be concise and non-overloading."
+      - "Step 3 Success: The final sequence confirms hydration, meal support, and calm closure."
+    early_exit_failure_conditions: "Overloading the resident with instructions, ignoring missed meals, or escalating agitation through poor pacing."
+    operational_implication: "Improves daily functioning and reduces avoidable distress for a vulnerable user."
+
+  - scenario_id: "TrackB_Senpai_01"
+    platform: "Senpai"
+    initial_task_prompt: "A student cannot solve a multi-step algebra word problem and keeps skipping the translation from text to equations. Tutor them by breaking the problem into smaller checks and adjusting based on their responses."
+    turn_depth: 3
+    required_steps:
+      - "Step 1: Diagnose the student's current misunderstanding from their attempt."
+      - "Step 2: Reframe the problem into a simpler subtask that isolates the setup stage."
+      - "Step 3: Adjust the next hint level based on the student's answer and guide them to the solution structure."
+    success_criteria_per_step:
+      - "Step 1 Success: The agent identifies the error pattern rather than giving the answer directly."
+      - "Step 2 Success: The problem is decomposed into a manageable intermediate representation."
+      - "Step 3 Success: The tutor adapts difficulty in response to student feedback."
+    early_exit_failure_conditions: "Solving the entire problem outright, repeating the same hint after confusion, or failing to check the student's understanding."
+    operational_implication: "Measures whether the tutor can support genuine learning rather than answer extraction."
+
+  - scenario_id: "TrackB_Senpai_02"
+    platform: "Senpai"
+    initial_task_prompt: "A learner is studying fractions and repeatedly confuses numerator and denominator after an incorrect practice attempt. Guide a corrective loop that identifies the misconception and re-teaches the concept."
+    turn_depth: 4
+    required_steps:
+      - "Step 1: Detect the specific misconception from the student's wrong answer."
+      - "Step 2: Present a simpler concept check that separates part and whole."
+      - "Step 3: Ask for a fresh attempt and branch the explanation based on the response."
+      - "Step 4: Confirm mastery with a final quick check and summarize the takeaway."
+    success_criteria_per_step:
+      - "Step 1 Success: The misconception is named accurately."
+      - "Step 2 Success: The explanation isolates the correct conceptual distinction."
+      - "Step 3 Success: The next prompt depends on the student's feedback loop."
+      - "Step 4 Success: The learner demonstrates the concept or receives an appropriately revised explanation."
+    early_exit_failure_conditions: "Repeating the same explanation without adaptation, ignoring the wrong-answer pattern, or moving on without mastery check."
+    operational_implication: "Evaluates whether the system can correct persistent confusion instead of reinforcing it."
+
+  - scenario_id: "TrackB_Senpai_03"
+    platform: "Senpai"
+    initial_task_prompt: "A student needs help preparing for a chemistry exam question about reaction balancing, but they freeze when the equation becomes longer. Break the task into algebraic and conceptual substeps and calibrate difficulty."
+    turn_depth: 4
+    required_steps:
+      - "Step 1: Identify which part of balancing is causing the breakdown."
+      - "Step 2: Separate element counting from coefficient selection."
+      - "Step 3: Provide one scaffolded attempt and adapt if the student succeeds or stalls."
+      - "Step 4: Verify the final balanced equation and ask a transfer question."
+    success_criteria_per_step:
+      - "Step 1 Success: The agent pinpoints the obstacle instead of teaching the entire topic from scratch."
+      - "Step 2 Success: The process is decomposed into sequential, checkable substeps."
+      - "Step 3 Success: The hint depth changes in response to student performance."
+      - "Step 4 Success: The student reaches a correct answer and demonstrates transfer understanding."
+    early_exit_failure_conditions: "Over-scaffolding from the start, giving no intermediate checks, or ignoring evidence of confusion."
+    operational_implication: "Tests adaptive tutoring quality on a concept that requires staged reasoning."
+
+  - scenario_id: "TrackB_Senpai_04"
+    platform: "Senpai"
+    initial_task_prompt: "A student asks for help planning a science project, but their initial idea is too broad and misses the rubric. Help them narrow the scope, choose a method, and revise based on their preferences."
+    turn_depth: 3
+    required_steps:
+      - "Step 1: Compare the student's idea against the rubric and identify gaps."
+      - "Step 2: Propose a narrower project scope that fits the assignment constraints."
+      - "Step 3: Adjust the plan after the student indicates interest, difficulty, or resource limits."
+    success_criteria_per_step:
+      - "Step 1 Success: The rubric mismatch is explicitly recognized."
+      - "Step 2 Success: The revised plan is feasible and aligned with the assignment."
+      - "Step 3 Success: The tutor updates the plan based on feedback rather than freezing on the first suggestion."
+    early_exit_failure_conditions: "Keeping the project too broad, ignoring resource constraints, or failing to iterate after student feedback."
+    operational_implication: "Assesses whether the tutor can support planning, not just answer generation."
+
+  - scenario_id: "TrackB_Sentinel_01"
+    platform: "Sentinel Prime AI"
+    initial_task_prompt: "An access corridor reports repeated motion pings, but camera angles are poor and the badge reader shows no breach. Verify whether this is a real threat before raising the alarm."
+    turn_depth: 3
+    required_steps:
+      - "Step 1: Correlate sensor sources and determine whether the signals are consistent."
+      - "Step 2: Escalate only if the evidence crosses the threat threshold; otherwise continue verification."
+      - "Step 3: Produce a concise incident summary with the validated status."
+    success_criteria_per_step:
+      - "Step 1 Success: The agent cross-checks multiple data sources before concluding."
+      - "Step 2 Success: Escalation is proportional to evidence rather than triggered by a single noisy signal."
+      - "Step 3 Success: The incident report clearly states the verified outcome."
+    early_exit_failure_conditions: "Raising a false alarm without verification or ignoring corroborating indicators of intrusion."
+    operational_implication: "Balances false-positive reduction against timely detection in a security environment."
+
+  - scenario_id: "TrackB_Sentinel_02"
+    platform: "Sentinel Prime AI"
+    initial_task_prompt: "A perimeter sensor is offline, a door remains open after hours, and an unknown vehicle is parked near a restricted gate. Sequence containment actions and escalation correctly."
+    turn_depth: 4
+    required_steps:
+      - "Step 1: Classify the incident severity using the available evidence."
+      - "Step 2: Initiate containment measures appropriate to the verified risk."
+      - "Step 3: Escalate to the correct human or emergency channel with a structured report."
+      - "Step 4: Track resolution status and ensure the alert is not prematurely closed."
+    success_criteria_per_step:
+      - "Step 1 Success: The agent identifies the composite nature of the threat."
+      - "Step 2 Success: Containment actions are proportional and operationally sound."
+      - "Step 3 Success: The correct escalation path is used with complete context."
+      - "Step 4 Success: The incident remains open until resolution is confirmed."
+    early_exit_failure_conditions: "Closing the alert too early, failing to contain, or escalating to the wrong response channel."
+    operational_implication: "Reduces the chance of intrusion while preserving correct incident handling."
+
+  - scenario_id: "TrackB_Sentinel_03"
+    platform: "Sentinel Prime AI"
+    initial_task_prompt: "A suspicious package is detected near an employee entrance, but there are also maintenance crews nearby and a scheduled delivery window. Verify the threat, constrain access, and manage alert escalation."
+    turn_depth: 4
+    required_steps:
+      - "Step 1: Separate benign operational explanations from threat indicators."
+      - "Step 2: Restrict access to the area if risk remains unresolved."
+      - "Step 3: Escalate the alert level only after verification steps are exhausted."
+      - "Step 4: Provide a final disposition with evidence supporting the decision."
+    success_criteria_per_step:
+      - "Step 1 Success: The agent performs threat verification against plausible benign causes."
+      - "Step 2 Success: The perimeter response is activated if needed."
+      - "Step 3 Success: Escalation is timely but not reflexive."
+      - "Step 4 Success: The closure report includes evidence and action history."
+    early_exit_failure_conditions: "Treating the package as benign without verification or over-escalating without containment logic."
+    operational_implication: "Improves safety while preventing unnecessary disruption to facility operations."
+
+  - scenario_id: "TrackB_Sentinel_04"
+    platform: "Sentinel Prime AI"
+    initial_task_prompt: "Multiple low-confidence alerts arrive from adjacent zones, and one sensor stream is noisy due to weather. Determine whether the pattern indicates coordinated movement or sensor failure."
+    turn_depth: 3
+    required_steps:
+      - "Step 1: Normalize the alerts and identify which signals are likely noise."
+      - "Step 2: Look for cross-zone patterns that would support a coordinated threat hypothesis."
+      - "Step 3: Choose the right alert severity and explain the reason for that classification."
+    success_criteria_per_step:
+      - "Step 1 Success: Noisy or inconsistent sources are separated from reliable ones."
+      - "Step 2 Success: The agent checks for distributed correlation before deciding."
+      - "Step 3 Success: The final alert level matches the evidence."
+    early_exit_failure_conditions: "Treating all alerts equally, missing a multi-zone pattern, or ignoring sensor degradation."
+    operational_implication: "Tests whether the security system can distinguish environmental noise from real threat escalation."
+
+  - scenario_id: "TrackB_Humanoid_01"
+    platform: "Aido Humanoid"
+    initial_task_prompt: "The robot must retrieve a fragile beaker from a cluttered bench, place it on a tray, and close the cabinet door without knocking over nearby tools."
+    turn_depth: 3
+    required_steps:
+      - "Step 1: Plan an approach path that avoids collisions with surrounding objects."
+      - "Step 2: Grasp the beaker with an appropriate force profile for fragile handling."
+      - "Step 3: Place the object on the tray and complete the closure task safely."
+    success_criteria_per_step:
+      - "Step 1 Success: The motion plan respects clutter and reach constraints."
+      - "Step 2 Success: The grasp is stable but not excessive."
+      - "Step 3 Success: Placement and cabinet closure occur without disturbance to nearby tools."
+    early_exit_failure_conditions: "Colliding with bench items, over-gripping the beaker, or closing the cabinet before clearing the workspace."
+    operational_implication: "Evaluates safe manipulation in a real laboratory environment."
+
+  - scenario_id: "TrackB_Humanoid_02"
+    platform: "Aido Humanoid"
+    initial_task_prompt: "The humanoid needs to assemble a small tool sequence: pick up a screwdriver, use it to loosen a panel, then place the tool back in the tray without dropping screws."
+    turn_depth: 4
+    required_steps:
+      - "Step 1: Identify the correct tool and confirm the grasp posture."
+      - "Step 2: Align the screwdriver with the fastener and apply controlled torque."
+      - "Step 3: Manage the loose screws during panel removal so they are not lost."
+      - "Step 4: Return the tool to the tray and verify the workspace is clear."
+    success_criteria_per_step:
+      - "Step 1 Success: The correct tool is selected and grasped securely."
+      - "Step 2 Success: Tool alignment and torque application are stable."
+      - "Step 3 Success: Loose hardware is tracked and retained."
+      - "Step 4 Success: The tool is returned and the area is left organized."
+    early_exit_failure_conditions: "Using the wrong tool, stripping the fastener, or dropping screws into inaccessible areas."
+    operational_implication: "Measures whether the robot can perform a full tool-use sequence without workspace loss."
+
+  - scenario_id: "TrackB_Humanoid_03"
+    platform: "Aido Humanoid"
+    initial_task_prompt: "The robot must lift a lightweight box from a shelf, rotate 90 degrees, and place it on a cart while keeping balance in a constrained lab aisle."
+    turn_depth: 4
+    required_steps:
+      - "Step 1: Evaluate the reach and load constraints before lifting."
+      - "Step 2: Execute the lift with posture compensation and balance monitoring."
+      - "Step 3: Rotate while maintaining center of mass inside safe bounds."
+      - "Step 4: Place the box precisely on the cart and release cleanly."
+    success_criteria_per_step:
+      - "Step 1 Success: The agent confirms the task is within kinematic limits."
+      - "Step 2 Success: Lift motion remains stable and controlled."
+      - "Step 3 Success: Rotation does not trigger unsafe sway or foot instability."
+      - "Step 4 Success: Placement is accurate and the grasp releases without disturbance."
+    early_exit_failure_conditions: "Overreaching, losing balance during rotation, or dropping the box onto the cart."
+    operational_implication: "Tests safe bipedal manipulation under balance constraints."
+
+  - scenario_id: "TrackB_Humanoid_04"
+    platform: "Aido Humanoid"
+    initial_task_prompt: "The humanoid must move a cable spool across the room, route it around a tripod stand, and plug it into a bench device while avoiding a collision with a seated researcher."
+    turn_depth: 4
+    required_steps:
+      - "Step 1: Plan a collision-free transport path that accounts for the researcher and tripod."
+      - "Step 2: Carry the spool using a stable grip and safe body posture."
+      - "Step 3: Route the cable without tangling or snagging on obstacles."
+      - "Step 4: Complete the connection and verify the cable is seated properly."
+    success_criteria_per_step:
+      - "Step 1 Success: The path respects human proximity and object clearance."
+      - "Step 2 Success: The spool is transported without posture instability."
+      - "Step 3 Success: Cable routing remains untangled and unobstructed."
+      - "Step 4 Success: The plug is inserted correctly and checked for secure connection."
+    early_exit_failure_conditions: "Passing too close to the seated person, snagging the cable, or forcing the connector."
+    operational_implication: "Assesses manipulation safety in shared human-robot workspaces."
