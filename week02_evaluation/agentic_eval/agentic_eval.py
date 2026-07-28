@@ -172,14 +172,21 @@ def compute_error_recovery_rate(transcript_dicts: list[dict]) -> Optional[float]
         if next_tool != prev_tool:
             recoveries += 1
         elif prev_input and next_input:
-            # Check input diversity via simple normalized edit distance proxy
+            # Approximate similarity: positional character overlap / max length.
+            # This is NOT true edit distance — it does not handle transpositions,
+            # insertions, or deletions correctly. It is a fast proxy that works
+            # well when the same tool is called with an identical or near-identical
+            # input (clear repetition) vs. a clearly different input (recovery).
+            # Limitation: inputs that are similar in content but differ in word
+            # order or length may be mis-classified. Spot-check against the
+            # transcript for any scenario where error_recovery_rate seems surprising.
             longer = max(len(prev_input), len(next_input))
             if longer > 0:
                 common = sum(
                     a == b for a, b in zip(prev_input[:longer], next_input[:longer])
                 )
                 similarity = common / longer
-                if similarity < 0.8:  # < 80% identical → treat as corrective
+                if similarity < 0.8:  # < 80% positional overlap → treat as corrective
                     recoveries += 1
 
     return round(recoveries / len(error_indices), 4) if error_indices else None
@@ -277,6 +284,96 @@ def build_result_dict(
         "error": "; ".join(errors) if errors else None,
         "dry_run": False,
     }
+
+
+# ---------------------------------------------------------------------------
+# Re-verification (re-run the judge against saved transcripts, no agent re-run)
+# ---------------------------------------------------------------------------
+
+async def reverify(results_path: Path) -> None:
+    """
+    Re-run step verification against already-saved transcripts, without
+    re-running the (expensive, slow) agent loop.
+
+    Use this after fixing a bug in the step_verifier judge prompt — e.g. the
+    fix requiring the judge to find Action+Observation evidence for a step
+    rather than trusting the agent's self-reported Final Answer narrative.
+    A manual audit of TrackB_Fari_02/anthropic found the judge marking all
+    4 required steps True off a single check_log call plus a confident but
+    unsubstantiated Final Answer — the step verifier was grading the Final
+    Answer's prose, not the transcript's actual evidence.
+
+    Only task_completion_rate, per_step_verdicts, and early_exit_triggered
+    are recomputed. agent-loop-derived fields (transcript,
+    actual_actions_taken, step_efficiency, error_recovery_rate) are
+    untouched, since re-verification doesn't change what the agent did.
+    """
+    load_dotenv(dotenv_path=REPO_ROOT / ".env")
+    openai_key = os.environ.get("OPENAI_API_KEY", "")
+    if not openai_key:
+        raise SystemExit("OPENAI_API_KEY not found in .env")
+
+    with results_path.open("r", encoding="utf-8") as fh:
+        output = json.load(fh)
+
+    scenarios = {s["scenario_id"]: s for s in load_scenarios(SCENARIO_YAML)}
+    verifier = StepVerifier(openai_api_key=openai_key)
+
+    changed = 0
+    for row in output["results"]:
+        scenario = scenarios.get(row["scenario_id"])
+        if scenario is None:
+            logger.warning("[reverify] Unknown scenario_id %s — skipping", row["scenario_id"])
+            continue
+
+        old_tcr = row.get("task_completion_rate")
+        verification = await verifier.verify(
+            scenario=scenario,
+            transcript_dicts=row.get("transcript", []),
+        )
+
+        agent_run_stub = AgentRunResult(
+            scenario_id=row["scenario_id"],
+            provider=row["provider"],
+            model=row["model"],
+            actual_actions_taken=row.get("actual_actions_taken", 0),
+            early_exit_triggered=False,  # agent_loop no longer sets this in-loop
+        )
+        new_tcr = compute_task_completion_rate(verification, agent_run_stub)
+
+        row["task_completion_rate"] = new_tcr
+        row["per_step_verdicts"] = [
+            {
+                "step_index": sv.step_index,
+                "required_step": sv.required_step,
+                "success_criterion": sv.success_criterion,
+                "final_verdict": sv.final_verdict,
+                "seed_verdicts": sv.seed_verdicts,
+                "reasoning_per_seed": sv.reasoning_per_seed,
+            }
+            for sv in verification.step_verdicts
+        ]
+        row["early_exit_triggered"] = verification.early_exit_triggered
+
+        if new_tcr != old_tcr:
+            changed += 1
+            logger.info("[reverify] %s | %s | TCR %s -> %s",
+                        row["scenario_id"], row["provider"], old_tcr, new_tcr)
+
+    output["metadata"]["reverified_at"] = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    output["metadata"]["reverify_note"] = (
+        "Step verifier prompt patched to require Action+Observation evidence for a step "
+        "rather than trusting the agent's self-reported Final Answer narrative. "
+        "task_completion_rate / per_step_verdicts / early_exit_triggered were recomputed "
+        "against the original saved transcripts; agent-loop fields (transcript, "
+        "actual_actions_taken, step_efficiency, error_recovery_rate) are unchanged."
+    )
+
+    with results_path.open("w", encoding="utf-8") as fh:
+        json.dump(output, fh, indent=2, ensure_ascii=False)
+
+    logger.info("[reverify] Done. %d/%d rows changed task_completion_rate.",
+                changed, len(output["results"]))
 
 
 # ---------------------------------------------------------------------------
@@ -388,6 +485,13 @@ async def run(dry_run: bool, limit: Optional[int]) -> None:
                         result_dict.get("task_completion_rate"),
                         result_dict.get("step_efficiency"))
 
+    # --- Close shared aiohttp sessions (DeepSeek clients) ---
+    for _, agent_client, env_client in providers:
+        for client in (agent_client, env_client):
+            aclose = getattr(client, "aclose", None)
+            if aclose is not None:
+                await aclose()
+
     # --- Save ---
     output = {
         "metadata": {
@@ -432,9 +536,16 @@ def parse_args() -> argparse.Namespace:
                    help="Skip all API calls; write placeholder metrics.")
     p.add_argument("--limit", type=int, default=None,
                    help="Limit to first N scenarios (for smoke testing).")
+    p.add_argument("--reverify", action="store_true",
+                   help="Re-run step verification against the saved transcripts in "
+                        "OUTPUT_PATH without re-running the agent loop. Use after a "
+                        "step_verifier prompt fix.")
     return p.parse_args()
 
 
 if __name__ == "__main__":
     args = parse_args()
-    asyncio.run(run(dry_run=args.dry_run, limit=args.limit))
+    if args.reverify:
+        asyncio.run(reverify(OUTPUT_PATH))
+    else:
+        asyncio.run(run(dry_run=args.dry_run, limit=args.limit))

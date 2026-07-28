@@ -283,19 +283,16 @@ class ReActAgentLoop:
                 observation = env_resp.content.strip()
                 is_error = observation.upper().startswith("ERROR:")
 
-            # Check early-exit conditions
-            if is_error and early_exit:
-                # Heuristic: if the error observation mentions keywords from
-                # early-exit condition, flag it
-                early_keywords = [w.lower() for w in early_exit.split()
-                                   if len(w) > 4]
-                obs_lower = observation.lower()
-                if any(kw in obs_lower for kw in early_keywords[:5]):
-                    early_exit_triggered = True
-                    logger.warning(
-                        "[agent_loop] %s | early-exit triggered on turn %d",
-                        scenario_id, turn,
-                    )
+            # NOTE: We intentionally do NOT do keyword-based early-exit detection
+            # here. The in-loop heuristic (matching early_exit keywords against the
+            # observation) was prone to false positives — it could prematurely break
+            # the loop before required_steps had a chance to execute, causing the
+            # step verifier to judge those steps False by default and producing a
+            # spuriously low task_completion_rate.
+            #
+            # Early-exit detection is instead handled post-hoc by step_verifier.py,
+            # which uses a full LLM judge over the complete transcript — a more
+            # reliable approach that cannot interrupt the agent mid-run.
 
             result.transcript.append(
                 TranscriptEntry(

@@ -71,10 +71,19 @@ AGENT TRANSCRIPT (Thought/Action/Observation sequence):
 
 QUESTION: Was the success criterion for this step met by the agent's actions in the transcript?
 
+STRICT EVIDENCE RULE: Only Action + Observation pairs are evidence that something actually
+happened in the environment. The agent's "Final Answer" text is the agent's own self-report on
+what it believes it accomplished — it is NOT evidence by itself. If the Final Answer claims a
+step was completed (e.g. "confirmed with the nurse", "escalated", "logged the outcome") but no
+matching Action (e.g. confirm, escalate, log_event) with a corresponding Observation appears
+earlier in the transcript, you MUST mark the verdict False, even if the Final Answer's narrative
+sounds complete, confident, and well-written. A plausible-sounding summary is not proof that the
+action was taken — this is the exact failure mode this evaluation exists to catch.
+
 Return ONLY a JSON object with these exact fields:
 {{
   "verdict": true or false,
-  "reasoning": "<one sentence explaining your decision>"
+  "reasoning": "<one sentence citing the specific Action+Observation that supports your verdict, or stating that no such evidence exists in the transcript>"
 }}"""
 
 _EARLY_EXIT_CHECK_PROMPT = """You are checking whether an agent triggered any early-exit failure conditions during a task.
@@ -129,6 +138,7 @@ async def _call_judge(
     client: "openai.AsyncOpenAI",
     system: str,
     prompt: str,
+    seed: int = 42,
 ) -> dict:
     last_error = None
     for attempt in range(1, JUDGE_MAX_RETRIES + 1):
@@ -137,7 +147,8 @@ async def _call_judge(
                 client.chat.completions.create(
                     model=JUDGE_MODEL,
                     temperature=JUDGE_TEMPERATURE,
-                    seed=42,
+                    seed=seed,   # passed through so each of the 3 judge seeds
+                                 # maps to a distinct API-level seed value
                     messages=[
                         {"role": "system", "content": system},
                         {"role": "user", "content": prompt},
@@ -282,8 +293,8 @@ class StepVerifier:
                 data = await _call_judge(
                     self._client,
                     _SEED_SYSTEM_PROMPTS[seed],
-                    # Override seed in the client call via a slightly varied prompt
-                    prompt + f"\n<!-- evaluation_seed={seed} -->",
+                    prompt,
+                    seed=seed,   # each seed produces a distinct API call
                 )
                 verdict = bool(data.get("verdict", False))
                 reasoning = data.get("reasoning", "")
