@@ -1,0 +1,6 @@
+streamlit>=1.60.0
+plotly>=6.9.0
+pandas>=3.0.5
+numpy>=2.5.1
+PyYAML>=6.0.3
+krippendorff>=0.8.2

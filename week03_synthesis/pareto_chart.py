@@ -178,9 +178,13 @@ def build_pareto_chart(df: pd.DataFrame) -> go.Figure:
         )
 
     # --- Shaded "ideal zone" (low cost, high quality) ---
+    # x0 must be > 0 on a log-scale x-axis (log(0) is undefined) — a literal 0 here
+    # silently corrupts the whole axis range rather than raising an error. 1e-5 is
+    # two orders of magnitude below the cheapest provider's cost/1K (~8e-5 for groq),
+    # so the shaded region still starts effectively at the axis origin visually.
     fig.add_shape(
         type="rect",
-        x0=0, x1=0.001,
+        x0=1e-5, x1=0.001,
         y0=0.85, y1=1.05,
         fillcolor="rgba(0,200,100,0.06)",
         line=dict(width=0),

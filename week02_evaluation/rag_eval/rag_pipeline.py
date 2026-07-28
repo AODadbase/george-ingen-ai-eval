@@ -47,6 +47,14 @@ assert abs(TFIDF_WEIGHT + SEMANTIC_WEIGHT - 1.0) < 1e-9, "Weights must sum to 1.
 
 EMBEDDING_MODEL: str = "all-MiniLM-L6-v2"  # sentence-transformers model
 
+# --- Week 3 ablation additions: chunking + reranking ---
+RERANK_MODEL: str = "cross-encoder/ms-marco-MiniLM-L-6-v2"
+# Candidate pool size for reranking = top_k * this multiplier (capped at corpus size).
+# The composite-score stage over-retrieves so the cross-encoder has real candidates
+# to re-order rather than just re-scoring the same top_k it would've returned anyway.
+RERANK_CANDIDATE_MULTIPLIER: int = 4
+RERANKING_MODES: tuple[str, ...] = ("none", "cross-encoder")
+
 # Persona vectors: domain-specific descriptor prepended to query when
 # use_persona_vector=True. Held constant across all runs for reproducibility.
 PERSONA_VECTORS: dict[str, str] = {
@@ -80,6 +88,52 @@ class Document:
     domain: str
     text: str
     tags: list[str] = field(default_factory=list)
+
+
+# ---------------------------------------------------------------------------
+# Chunking (Week 3 ablation addition)
+# ---------------------------------------------------------------------------
+
+def _chunk_text(text: str, chunk_size: int) -> list[str]:
+    """
+    Split text into whitespace-token windows of at most chunk_size tokens.
+
+    Approximation note: "token" here is a whitespace-separated word, not an
+    LLM subword token (no tokenizer dependency was already established in
+    this module for chunking). This under-counts true token length somewhat,
+    which makes chunk_size a conservative (slightly generous) bound.
+    """
+    words = text.split()
+    if len(words) <= chunk_size:
+        return [text]
+    return [
+        " ".join(words[i:i + chunk_size])
+        for i in range(0, len(words), chunk_size)
+    ]
+
+
+def _chunk_documents(docs: list["Document"], chunk_size: int) -> list["Document"]:
+    """
+    Split each document's text into chunk_size-token windows, each becoming
+    its own retrievable Document. A document shorter than chunk_size is left
+    as a single chunk with its original doc_id unchanged; a document that
+    actually splits gets suffixed doc_ids (f"{doc_id}#chunk{i}") so retrieval
+    results stay traceable to their source passage.
+    """
+    chunked: list[Document] = []
+    for doc in docs:
+        pieces = _chunk_text(doc.text, chunk_size)
+        if len(pieces) == 1:
+            chunked.append(doc)
+            continue
+        for i, piece in enumerate(pieces):
+            chunked.append(Document(
+                doc_id=f"{doc.doc_id}#chunk{i}",
+                domain=doc.domain,
+                text=piece,
+                tags=doc.tags,
+            ))
+    return chunked
 
 
 # ---------------------------------------------------------------------------
@@ -156,6 +210,14 @@ class RAGPipeline:
     top_k : number of documents to retrieve
     use_persona_vector : if True, prepend domain persona descriptor to query
     embedding_model : sentence-transformers model name
+    chunk_size : if set, split each KB document into windows of at most this
+        many whitespace tokens before indexing (Week 3 ablation dimension).
+        None (default) preserves the original whole-document retrieval unit
+        — existing callers (e.g. Week 2's persona-vector ablation) are
+        unaffected.
+    reranking : "none" (default, original behavior) or "cross-encoder" —
+        over-retrieve a candidate pool by composite score, then re-order it
+        with a cross-encoder before taking the final top_k.
     """
 
     def __init__(
@@ -164,18 +226,29 @@ class RAGPipeline:
         top_k: int = 3,
         use_persona_vector: bool = True,
         embedding_model: str = EMBEDDING_MODEL,
+        chunk_size: Optional[int] = None,
+        reranking: str = "none",
     ) -> None:
         if domain not in KB_PATHS:
             raise ValueError(f"Unknown domain '{domain}'. Must be one of {list(KB_PATHS)}")
+        if reranking not in RERANKING_MODES:
+            raise ValueError(f"Unknown reranking mode '{reranking}'. Must be one of {RERANKING_MODES}")
 
         self.domain = domain
         self.top_k = top_k
         self.use_persona_vector = use_persona_vector
         self.embedding_model_name = embedding_model
+        self.chunk_size = chunk_size
+        self.reranking = reranking
 
-        # Load append-only document log
+        # Load append-only document log, then chunk if requested
         self.docs: list[Document] = self._load_docs(KB_PATHS[domain])
-        logger.info("[RAG] Loaded %d documents for domain=%s", len(self.docs), domain)
+        if chunk_size is not None:
+            self.docs = _chunk_documents(self.docs, chunk_size)
+        logger.info(
+            "[RAG] Loaded %d retrievable units for domain=%s (chunk_size=%s)",
+            len(self.docs), domain, chunk_size,
+        )
 
         # Build TF-IDF index
         self._tf_index, self._idf_index = _build_tfidf_index(self.docs)
@@ -191,6 +264,14 @@ class RAGPipeline:
             show_progress_bar=False,
         )
         logger.info("[RAG] Document embeddings computed: shape=%s", self._doc_embeddings.shape)
+
+        # Cross-encoder is loaded lazily (only when actually needed) since it's
+        # an extra model download/load that most configs (reranking="none") never use.
+        self._cross_encoder: Optional["object"] = None
+        if reranking == "cross-encoder":
+            logger.info("[RAG] Loading cross-encoder reranker: %s", RERANK_MODEL)
+            from sentence_transformers import CrossEncoder
+            self._cross_encoder = CrossEncoder(RERANK_MODEL)
 
     @staticmethod
     def _load_docs(path: Path) -> list[Document]:
@@ -257,11 +338,23 @@ class RAGPipeline:
         # --- Composite score ---
         composite = TFIDF_WEIGHT * norm_tfidf + SEMANTIC_WEIGHT * norm_semantic
 
-        # Sort by composite score descending
-        ranked_indices = np.argsort(composite)[::-1][: self.top_k]
+        if self.reranking == "none":
+            ranked_indices = np.argsort(composite)[::-1][: self.top_k]
+            return [(self.docs[i], float(composite[i])) for i in ranked_indices]
+
+        # --- Cross-encoder reranking ---
+        # Over-retrieve a candidate pool by composite score, then re-order it
+        # with the cross-encoder before taking the final top_k. Reranking
+        # scores (query, doc.text) pairs directly — the persona-vector prefix
+        # is retrieval-stage-only, same rationale as the TF-IDF path above.
+        pool_size = min(len(self.docs), max(self.top_k * RERANK_CANDIDATE_MULTIPLIER, self.top_k))
+        pool_indices = np.argsort(composite)[::-1][:pool_size]
+        pairs = [(query, self.docs[i].text) for i in pool_indices]
+        cross_scores = self._cross_encoder.predict(pairs)
+        reranked_order = np.argsort(cross_scores)[::-1][: self.top_k]
         return [
-            (self.docs[i], float(composite[i]))
-            for i in ranked_indices
+            (self.docs[pool_indices[i]], float(cross_scores[i]))
+            for i in reranked_order
         ]
 
     def format_context(self, retrieved: list[tuple[Document, float]]) -> str:
@@ -284,4 +377,7 @@ class RAGPipeline:
             "embedding_model": self.embedding_model_name,
             "tfidf_weight": TFIDF_WEIGHT,
             "semantic_weight": SEMANTIC_WEIGHT,
+            "chunk_size": self.chunk_size,
+            "reranking": self.reranking,
+            "use_persona_vector": self.use_persona_vector,
         }

@@ -1,41 +1,40 @@
-# Week 1 Evaluation Log
+# Week 2 Evaluation Log
 
-**Period**: Week 1 (Physical AI Landscape, Benchmark Design & Harness Engineering)
+**Period**: Week 2 (4-Provider Evaluation, Production RAG Evaluation, Agentic Task Evaluation)
 **Author**: George Wang
 
 ## Evaluated
 
-Designed and built the 40-scenario benchmark bank across InGen's five platforms (Fari, Senpai,
-Sentinel Prime AI, Aido Rover, Aido Humanoid) — 20 conversational scenarios (Track A) and 20
-agentic multi-step scenarios (Track B, all turn_depth ≥ 3). Built the Python evaluation harness
-(`eval_harness/`) with a two-tier architecture — orchestration (`dispatcher.py`) and execution
-(`clients.py`) — dispatching to all four providers (OpenAI GPT-4o, Anthropic Claude, DeepSeek,
-Llama-3.1-8B via Groq) concurrently, plus a 3-seed LLM-judge module (`llm_judge.py`) for
-downstream Krippendorff's alpha. Ran the harness as a 5-scenario smoke test across all four
-providers to confirm connectivity and baseline latency before committing to a full run.
+Ran the full 40-scenario benchmark against all four providers (160 judged rows, 100% judge
+coverage after fixing a rate-limit gap), producing a severity-weighted leaderboard and
+per-provider Krippendorff's alpha. Built and ran the production RAG pipeline (IGuide-inspired
+architecture) on the 8 Fari/Senpai conversational scenarios under a controlled persona-vector
+ablation. Built and ran the multi-step agentic evaluation — a ReAct loop plus 3-seed step
+verifier — on all 20 Track B scenarios against the two top-ranked providers (Anthropic,
+DeepSeek).
 
 ## Found
 
-Platform-coverage validation on the Track A YAML caught a real gap before it reached the first
-full evaluation run: the initial draft had only 16 scenarios and omitted Fari entirely — the
-one platform in this bank where failure severity is highest (medication and emergency-response
-scenarios). Corrected by authoring four Fari scenarios and re-validating platform coverage
-programmatically (4 scenarios × 5 platforms, both tracks) rather than by inspection, since
-inspection is exactly how the gap was missed the first time.
+The persona-vector ablation does not confirm IGuide's design intuition. IGuide's premise is
+that prepending a domain-specific descriptor to the query improves retrieval relevance; the
+data shows the opposite for Fari — answer relevance drops by 0.113 (0.925 → 0.812) with the
+layer enabled, concentrated entirely on Fari and with no corresponding gain in faithfulness or
+context coverage. Senpai is unaffected either way. The most plausible mechanism: Fari's persona
+descriptor is broad enough (medication, routines, emergency response, nutrition) to pull the
+query embedding toward generic eldercare topics even for narrow questions, diluting rather than
+sharpening relevance. This directly informs the deployment recommendation in this week's memo:
+do not enable persona-vector augmentation for Fari as currently designed.
 
 ## Mechanism
 
-The design choice that most directly reflects my SREGym experience is Track B's
-`required_steps` / `success_criteria_per_step` pairing — parallel, equal-length lists giving
-one independently verifiable success condition per step, rather than grading on final-state
-outcome alone. This is the same principle SREGym used for the Kubernetes-remediation agent
-benchmark: a multi-step remediation can reach a healthy final cluster state through the wrong
-mechanism (masked fault, unrelated concurrent fix), so grading only the end state overstates
-agent competence. Requiring `early_exit_failure_conditions` on every Track B scenario follows
-the same logic — it lets the harness distinguish "task incomplete" from "agent took a
-plausible-looking wrong action," which SREGym treats as separate failure modes with different
-operational implications.
+Also found and fixed a verification bug in the agentic evaluation: the step verifier initially
+credited a required step as complete whenever the agent's Final Answer *claimed* it was done,
+without requiring a corresponding tool action in the transcript. This inflated completion rates
+substantially (Anthropic 70% → 25%, DeepSeek 30% → 15% after the fix). The mechanism is a
+narrative-only claim standing in for verified evidence — exactly the failure mode SREGym's
+evaluation philosophy exists to catch, and the same principle applied to my own harness that I
+applied when reviewing InGen's PIC 2.0 platform paper: a claim of success is not evidence of
+success until something independently checks it against the actual trace of actions taken.
 
-**Next week**: full 4-provider run across all 40 scenarios, RAG pipeline evaluation, and the
-first real multi-step agentic execution (Week 1's Track B design supports this; it has not yet
-been run).
+**Next week**: system-level latency × quality Pareto analysis, RAG configuration ablation
+(chunk size × top-k × reranking), PIC 2.0 model-class mapping, and the research paper draft.
